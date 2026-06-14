@@ -1,0 +1,47 @@
+<div data-controller="dropdown" class="<%= wrapper_classes %>">
+  <button
+    type="button"
+    data-action="click->dropdown#toggle"
+    data-test="user-menu-button"
+    aria-haspopup="menu"
+    class="flex w-full items-center gap-2 rounded-md p-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+  >
+    <%= render AvatarComponent.new(name: @user.name, initials: initials, src: @avatar_src, size: :sm) %>
+    <span class="hidden sm:inline truncate font-medium text-zinc-900 dark:text-zinc-100"><%= display_name %></span>
+    <%= helpers.icon "chevrons-up-down", class: "size-4 ml-1 text-zinc-500" %>
+  </button>
+
+  <div
+    data-dropdown-target="menu"
+    role="menu"
+    class="<%= menu_classes %>"
+  >
+    <div class="flex items-center gap-2 px-3 py-2.5 text-start text-sm">
+      <%= render AvatarComponent.new(name: @user.name, initials: initials, src: @avatar_src, size: :sm) %>
+      <div class="grid flex-1 leading-tight">
+        <span class="truncate font-medium text-zinc-900 dark:text-zinc-100"><%= display_name %></span>
+        <span class="truncate text-xs text-zinc-600 dark:text-zinc-400"><%= @user.email %></span>
+      </div>
+    </div>
+
+    <%= render SeparatorComponent.new(variant: :subtle) %>
+
+    <div class="py-1">
+      <%= link_to settings_path,
+                  role: "menuitem",
+                  class: "flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" do %>
+        <%= helpers.icon "settings", class: "size-4" %>
+        <span>Settings</span>
+      <% end %>
+
+      <%= button_to sign_in_path,
+                    method: :delete,
+                    form: { role: "menuitem", class: "block w-full" },
+                    data: { test: "logout-button" },
+                    class: "flex w-full items-center gap-2 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" do %>
+        <%= helpers.icon "log-out", class: "size-4" %>
+        <span>Sign out</span>
+      <% end %>
+    </div>
+  </div>
+</div>

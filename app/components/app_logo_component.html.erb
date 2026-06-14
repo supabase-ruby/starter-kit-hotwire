@@ -1,0 +1,8 @@
+<div class="flex items-center gap-2">
+  <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
+    <%= render AppLogoIconComponent.new(class_name: "size-5 fill-current") %>
+  </div>
+  <div class="grid flex-1 text-left text-sm">
+    <span class="truncate font-semibold leading-tight text-zinc-900 dark:text-zinc-100"><%= @name %></span>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<span class="<%= css_classes %>" role="img" aria-label="<%= @alt %>">
+  <% if show_image? %>
+    <img src="<%= @src %>" alt="<%= @alt %>" class="size-full object-cover">
+  <% elsif show_initials? %>
+    <span><%= @initials %></span>
+  <% else %>
+    <%= helpers.icon "user", class: "size-3/5 opacity-75" %>
+  <% end %>
+</span>

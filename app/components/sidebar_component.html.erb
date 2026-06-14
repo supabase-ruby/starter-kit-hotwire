@@ -1,0 +1,31 @@
+<aside
+  data-test="sidebar"
+  aria-label="Primary"
+  class="flex h-full w-64 flex-col border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+>
+  <div class="flex h-16 items-center px-5">
+    <%= link_to helpers.dashboard_path, class: "flex items-center" do %>
+      <%= render AppLogoComponent.new %>
+    <% end %>
+  </div>
+
+  <nav aria-label="Main" class="flex-1 overflow-y-auto px-3 py-2">
+    <div class="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Platform</div>
+    <ul class="space-y-1">
+      <% nav_items.each do |item| %>
+        <li>
+          <%= link_to item[:href],
+                      class: link_classes(active: current?(item[:href])),
+                      aria: { current: current?(item[:href]) ? "page" : nil } do %>
+            <%= helpers.icon item[:icon], class: "size-5 shrink-0" %>
+            <span><%= item[:label] %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </nav>
+
+  <div class="border-t border-zinc-200 p-3 dark:border-zinc-700" data-test="sidebar-profile">
+    <%= render UserMenuComponent.new(user: @user, placement: :top) %>
+  </div>
+</aside>
