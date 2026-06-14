@@ -1,14 +1,41 @@
-<h1>Enter your code</h1>
+<% content_for :auth_variant, "simple" %>
+<% content_for :auth_title, "Enter your code" %>
+<% content_for :auth_description, "Enter the one-time code we just sent you" %>
 
-<%= render "supabase/rails/shared/flash" %>
+<%= render AuthSessionStatusComponent.new(status: flash[:notice], class_name: "text-center") %>
 
-<%= form_with url: verify_otp_index_path do |form| %>
+<% if flash[:alert].present? %>
+  <p class="font-medium text-sm text-red-600 text-center" data-test="otp-verify-error"><%= flash[:alert] %></p>
+<% end %>
+
+<%= form_with(url: verify_otp_index_path, html: { class: "flex flex-col gap-6", "data-test": "otp-verify-form" }) do |form| %>
   <%= form.hidden_field :email, value: params[:email] %>
   <%= form.hidden_field :phone, value: params[:phone] %>
   <%= form.hidden_field :type, value: params[:type] || "email" %>
-  <%= form.text_field :token, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric", placeholder: "Enter the code we just sent" %><br>
-  <%= form.submit "Verify" %>
-<% end %>
-<br>
 
-<%= link_to "Back to sign in", new_session_path %>
+  <div class="flex flex-col gap-2">
+    <%= form.label :token, "One-time code", class: "text-sm font-medium text-zinc-900 dark:text-white" %>
+    <%= form.text_field :token,
+      required: true,
+      autofocus: true,
+      autocomplete: "one-time-code",
+      inputmode: "numeric",
+      placeholder: "Enter the code we just sent",
+      class: "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm tracking-widest text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-white dark:focus:ring-white",
+      "data-test": "otp-verify-token-input" %>
+  </div>
+
+  <%= render ButtonComponent.new(label: "Verify", type: :submit) %>
+<% end %>
+
+<div class="flex items-center gap-3">
+  <%= render SeparatorComponent.new %>
+</div>
+
+<div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
+  <%= link_to "Back to sign in", new_session_path, class: "font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-white" %>
+</div>
+
+<div class="flex justify-center pt-2">
+  <%= render AppLogoComponent.new %>
+</div>

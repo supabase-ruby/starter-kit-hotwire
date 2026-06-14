@@ -1,15 +1,62 @@
-<h1>Sign in</h1>
+<% content_for :auth_variant, "simple" %>
+<% content_for :auth_title, "Log in to your account" %>
+<% content_for :auth_description, "Enter your email and password below to log in" %>
 
-<%= render "supabase/rails/shared/flash" %>
+<%= render AuthSessionStatusComponent.new(status: flash[:notice], class_name: "text-center") %>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
+<% if flash[:alert].present? %>
+  <p class="font-medium text-sm text-red-600 text-center" data-test="login-error"><%= flash[:alert] %></p>
 <% end %>
-<br>
 
-<%= link_to "Forgot password?", new_password_path %><br>
-<%= link_to "Create an account", new_registration_path %>
+<%= form_with(url: session_path, html: { class: "flex flex-col gap-6", "data-test": "login-form" }) do |form| %>
+  <div class="flex flex-col gap-2">
+    <%= form.label :email, "Email address", class: "text-sm font-medium text-zinc-900 dark:text-white" %>
+    <%= form.email_field :email,
+      value: params[:email],
+      required: true,
+      autofocus: true,
+      autocomplete: "email",
+      placeholder: "email@example.com",
+      class: "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-white dark:focus:ring-white",
+      "data-test": "login-email-input" %>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <div class="flex items-center justify-between">
+      <%= form.label :password, "Password", class: "text-sm font-medium text-zinc-900 dark:text-white" %>
+      <%= link_to "Forgot your password?", new_password_path,
+        class: "text-sm font-medium text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400",
+        data: { test: "login-forgot-password-link" } %>
+    </div>
+    <%= form.password_field :password,
+      required: true,
+      autocomplete: "current-password",
+      placeholder: "Password",
+      maxlength: 72,
+      class: "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-white dark:focus:ring-white",
+      "data-test": "login-password-input" %>
+  </div>
+
+  <%= render ButtonComponent.new(label: "Log in", type: :submit) %>
+<% end %>
+
+<div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
+  <span>Don't have an account?</span>
+  <%= link_to "Sign up", new_registration_path, class: "font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-white", data: { test: "login-sign-up-link" } %>
+</div>
+
+<div class="flex items-center gap-3">
+  <%= render SeparatorComponent.new %>
+  <span class="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">or</span>
+  <%= render SeparatorComponent.new %>
+</div>
 
 <%= render "supabase/rails/oauth/buttons" %>
+
+<div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
+  <%= link_to "Sign in with a one-time code", new_otp_path, class: "font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-white" %>
+</div>
+
+<div class="flex justify-center pt-2">
+  <%= render AppLogoComponent.new %>
+</div>

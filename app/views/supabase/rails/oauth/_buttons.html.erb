@@ -1,8 +1,11 @@
-<%# OAuth provider buttons. Renders one link per provider listed in
-   `config.supabase.oauth_providers` (defaults to none — host sets this in
-   the supabase initializer). Each link initiates the PKCE flow via
-   `OauthController#authorize`. %>
-<% providers = (Rails.application.config.supabase.oauth_providers if defined?(::Rails)) %>
-<% Array(providers).each do |provider| %>
-  <%= link_to "Sign in with #{provider.to_s.capitalize}", oauth_authorize_path(provider: provider), data: { turbo_method: :get } %><br>
-<% end %>
+<%# OAuth provider buttons. Renders a single GitHub sign-in button. %>
+<div class="flex flex-col gap-3">
+  <%= link_to oauth_authorize_path(provider: :github),
+    class: "inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 dark:focus:ring-white",
+    data: { test: "oauth-github-button", turbo_method: :get } do %>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="size-4 fill-current" aria-hidden="true">
+      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.21c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.76 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.44-2.69 5.41-5.26 5.69.41.36.78 1.07.78 2.15v3.19c0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12c0-6.35-5.15-11.5-11.5-11.5Z"/>
+    </svg>
+    <span>Continue with GitHub</span>
+  <% end %>
+</div>
