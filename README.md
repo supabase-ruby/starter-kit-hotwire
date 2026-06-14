@@ -163,3 +163,94 @@ gem, wrapped by the `icon` helper in `ApplicationHelper`.
 ```
 
 Browse the full Lucide set at <https://lucide.dev/icons/>.
+
+## Verifying a release
+
+Before tagging a release, run this smoke flow against a real Supabase project
+to confirm end-to-end behavior. `bin/ci` alone is not enough — it does not
+exercise the live Supabase API, email delivery, or the GitHub OAuth round-trip.
+
+### Prerequisites
+
+- A Supabase project you can throw test users into (a dedicated `staging` or
+  `smoke` project is ideal — these flows create accounts that should not pollute
+  production data).
+- Email confirmations enabled at **Authentication → Sign In / Up → Email** in
+  the Supabase dashboard.
+- A GitHub OAuth app registered against this Supabase project — see
+  [Sign in with GitHub](#sign-in-with-github).
+- An inbox you can read for the test email address (Supabase delivers
+  confirmation, password-reset, and magic-link mails through its own SMTP
+  unless you have configured a custom provider).
+
+### Setup
+
+On a fresh clone:
+
+```bash
+git clone https://github.com/supabase-ruby/starter-kit-hotwire.git
+cd starter-kit-hotwire
+cp .env.example .env   # fill in the real Supabase + GitHub values
+bin/setup --skip-server
+bin/dev
+```
+
+- [ ] `bin/setup` finishes without errors (gems installed, database prepared).
+- [ ] `bin/dev` prints `Listening on http://127.0.0.1:3000` and the page at
+      <http://localhost:3000> renders the dashboard shell.
+
+### 1. Sign-up → email confirmation → sign-in
+
+- [ ] Open `/registration/new`, submit a fresh email + password (≥ 12 chars).
+- [ ] The app redirects to `/session/new` with a "Check your email to confirm"
+      notice.
+- [ ] The confirmation email arrives in the test inbox; click the link.
+- [ ] Supabase redirects back to the app, authenticated. `/` shows the
+      authenticated dashboard chrome (sidebar + user menu).
+- [ ] Sign out from the user menu, then sign in at `/session/new` with the
+      same credentials. You land back on `/`.
+
+### 2. Password reset
+
+- [ ] Sign out. From `/session/new`, click "Forgot password?".
+- [ ] Submit the test email at `/passwords/new`. A neutral confirmation flash
+      renders (no enumeration leak).
+- [ ] The reset email arrives; click the link. It opens
+      `/passwords/:token/edit`.
+- [ ] Submit a new password (≥ 12 chars). The app redirects to `/session/new`
+      with an "Updated" notice.
+- [ ] Sign in with the new password — you reach `/`.
+
+### 3. GitHub OAuth
+
+- [ ] Sign out. From `/session/new`, click **Continue with GitHub**.
+- [ ] You are redirected to Supabase, which forwards you to GitHub. Authorize
+      the app if prompted.
+- [ ] GitHub bounces back through Supabase to `/oauth/callback`, and the app
+      finally lands you on `/` authenticated. The user menu shows the
+      GitHub-linked account.
+
+### 4. OTP / magic-link
+
+- [ ] Sign out. Open `/otp/new`, submit the test email.
+- [ ] The OTP / magic-link email arrives. Either click the link, or copy the
+      6-digit code and submit it at `/otp/verify?email=…`.
+- [ ] The app redirects to `/` authenticated.
+
+### 5. Profile update persists
+
+- [ ] While signed in, open `/settings/profile`.
+- [ ] Change the **Name** field, click **Save**. A "Profile updated." flash
+      renders.
+- [ ] Sign out, then sign in again with the same email + password.
+- [ ] Open `/settings/profile` — the new display name is still there. Confirm
+      in the Supabase dashboard at **Authentication → Users** that the user's
+      `raw_user_meta_data.display_name` matches.
+
+### Tear-down
+
+- [ ] Delete the test users from the Supabase dashboard
+      (**Authentication → Users → … → Delete user**) so the next release smoke
+      starts clean.
+
+If every checkbox above is ticked, the release is shippable.
