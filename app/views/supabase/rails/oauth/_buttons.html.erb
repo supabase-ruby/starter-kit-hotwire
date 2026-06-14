@@ -1,0 +1,8 @@
+<%# OAuth provider buttons. Renders one link per provider listed in
+   `config.supabase.oauth_providers` (defaults to none — host sets this in
+   the supabase initializer). Each link initiates the PKCE flow via
+   `OauthController#authorize`. %>
+<% providers = (Rails.application.config.supabase.oauth_providers if defined?(::Rails)) %>
+<% Array(providers).each do |provider| %>
+  <%= link_to "Sign in with #{provider.to_s.capitalize}", oauth_authorize_path(provider: provider), data: { turbo_method: :get } %><br>
+<% end %>

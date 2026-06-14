@@ -1,0 +1,14 @@
+<h1>Enter your code</h1>
+
+<%= render "supabase/rails/shared/flash" %>
+
+<%= form_with url: verify_otp_index_path do |form| %>
+  <%= form.hidden_field :email, value: params[:email] %>
+  <%= form.hidden_field :phone, value: params[:phone] %>
+  <%= form.hidden_field :type, value: params[:type] || "email" %>
+  <%= form.text_field :token, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric", placeholder: "Enter the code we just sent" %><br>
+  <%= form.submit "Verify" %>
+<% end %>
+<br>
+
+<%= link_to "Back to sign in", new_session_path %>

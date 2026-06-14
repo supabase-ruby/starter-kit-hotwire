@@ -1,0 +1,12 @@
+<h1>Create an account</h1>
+
+<%= render "supabase/rails/shared/flash" %>
+
+<%= form_with url: registration_path do |form| %>
+  <%= form.email_field :email, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email] %><br>
+  <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Choose a password", maxlength: 72 %><br>
+  <%= form.submit "Sign up" %>
+<% end %>
+<br>
+
+<%= link_to "Already have an account? Sign in", new_session_path %>

@@ -1,0 +1,5 @@
+<%# Flash partial — shared by every gem-shipped view. Uses the conventional
+   `notice` / `alert` keys (AC-4). Hosts can override this partial by shipping
+   their own at `app/views/supabase/rails/shared/_flash.html.erb`. %>
+<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
