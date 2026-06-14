@@ -1,31 +1,59 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Supabase Rails Starter" %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Supabase Rails Starter">
-    <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+    <%= render "layouts/head" %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
-      <%= yield %>
-    </main>
+  <body class="min-h-screen bg-white dark:bg-zinc-950">
+    <% if Current.user %>
+      <div data-controller="sidebar" class="flex min-h-screen">
+        <%# Mobile: backdrop %>
+        <div
+          data-sidebar-target="backdrop"
+          data-action="click->sidebar#close"
+          class="hidden fixed inset-0 z-40 bg-black/40 lg:hidden"
+          aria-hidden="true"
+        ></div>
+
+        <%# Mobile: slide-in panel %>
+        <div
+          data-sidebar-target="panel"
+          class="hidden fixed inset-y-0 left-0 z-50 w-64 lg:hidden"
+        >
+          <%= render SidebarComponent.new(user: Current.user, current_path: request.path) %>
+        </div>
+
+        <%# Desktop: persistent sidebar %>
+        <div class="hidden lg:flex lg:flex-shrink-0">
+          <%= render SidebarComponent.new(user: Current.user, current_path: request.path) %>
+        </div>
+
+        <div class="flex min-w-0 flex-1 flex-col">
+          <header class="flex h-16 items-center gap-3 border-b border-zinc-200 px-4 dark:border-zinc-800">
+            <button
+              type="button"
+              data-action="click->sidebar#open"
+              data-test="sidebar-toggle"
+              aria-label="Open navigation"
+              class="inline-flex size-9 items-center justify-center rounded-md text-zinc-700 hover:bg-zinc-100 lg:hidden dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              <%= icon "menu", class: "size-5" %>
+            </button>
+
+            <div class="flex-1"></div>
+
+            <%= render UserMenuComponent.new(user: Current.user) %>
+          </header>
+
+          <main class="flex-1 p-5">
+            <%= yield %>
+          </main>
+        </div>
+      </div>
+    <% else %>
+      <main class="container mx-auto mt-28 px-5 flex">
+        <%= yield %>
+      </main>
+    <% end %>
   </body>
 </html>

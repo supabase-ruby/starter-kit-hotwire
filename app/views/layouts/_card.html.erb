@@ -1,0 +1,22 @@
+<div data-test="auth-card" class="flex min-h-svh flex-col items-center justify-center gap-6 bg-neutral-100 p-6 md:p-10 dark:bg-transparent">
+  <div class="flex w-full max-w-md flex-col gap-6">
+    <%= link_to root_path, class: "flex flex-col items-center gap-2 font-medium" do %>
+      <span class="flex h-9 w-9 items-center justify-center rounded-md">
+        <%= render AppLogoIconComponent.new(class_name: "size-9 fill-current text-black dark:text-white") %>
+      </span>
+      <span class="sr-only"><%= AppLogoComponent::BRAND_NAME %></span>
+    <% end %>
+
+    <div class="flex flex-col gap-6">
+      <div class="rounded-xl border border-stone-200 bg-white text-stone-800 shadow-xs dark:border-stone-800 dark:bg-stone-950 dark:text-stone-100">
+        <div class="flex flex-col gap-6 px-10 py-8">
+          <% if title.present? || description.present? %>
+            <%= render AuthHeaderComponent.new(title: title, description: description) %>
+          <% end %>
+
+          <%= yield %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

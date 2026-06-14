@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html class="dark">
+  <head>
+    <%= render "layouts/head" %>
+  </head>
+
+  <body class="min-h-screen antialiased bg-white dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
+    <%
+      variant = content_for(:auth_variant).presence || "simple"
+      title = content_for(:auth_title).to_s.strip
+      description = content_for(:auth_description).to_s.strip
+    %>
+    <%= render "layouts/#{variant}", title: title, description: description do %>
+      <%= yield %>
+    <% end %>
+  </body>
+</html>
