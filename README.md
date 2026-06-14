@@ -136,11 +136,20 @@ reach before sign-in.
 ## Tests
 
 ```bash
-bin/rails test          # full Minitest suite
-bin/rubocop             # linter
-bin/brakeman            # security scanner
-bin/bundler-audit       # dependency audit
+bin/ci                  # runs the full lint + security + test suite
 ```
+
+`bin/ci` runs (in order):
+
+1. `bin/setup --skip-server` — installs gems, prepares the database.
+2. `bin/rubocop` — Ruby style check.
+3. `bin/brakeman` — Rails security scanner.
+4. `bin/bundler-audit` — gem dependency vulnerability audit.
+5. `bin/rails test` — Minitest suite.
+6. `bin/rails test:system` — Capybara + headless Chrome system tests.
+
+Any step that fails aborts the run with a non-zero exit code. To run a step
+in isolation, just invoke the underlying command directly.
 
 ## Icons
 
