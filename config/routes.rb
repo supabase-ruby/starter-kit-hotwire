@@ -1,5 +1,12 @@
 Rails.application.routes.draw do
   supabase_authentication_routes
+
+  get "sign_in", to: redirect("/session/new"), as: :sign_in
+  get "sign_up", to: redirect("/registration/new"), as: :sign_up
+
+  get "welcome",   to: "pages#welcome", as: :welcome
+  get "dashboard", to: "home#index",    as: :dashboard
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
