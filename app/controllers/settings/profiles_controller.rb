@@ -28,7 +28,7 @@ class Settings::ProfilesController < ApplicationController
       attrs = {}
       attrs[:email] = params[:email] if params[:email].present?
       data = {}
-      data["name"] = params[:name] if params[:name].present?
+      data["display_name"] = params[:display_name] if params[:display_name].present?
       attrs[:data] = data unless data.empty?
       attrs
     end
