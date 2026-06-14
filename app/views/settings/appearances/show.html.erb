@@ -1,0 +1,68 @@
+<% content_for :title, "Appearance settings" %>
+
+<%
+  settings_nav_items = [
+    { label: "Profile",    href: settings_profile_path,    data_test: "settings-nav-profile" },
+    { label: "Appearance", href: settings_appearance_path, data_test: "settings-nav-appearance" }
+  ]
+  current_settings_path = request.path
+
+  theme_options = [
+    { value: "light",  label: "Light",  icon: "sun" },
+    { value: "dark",   label: "Dark",   icon: "moon" },
+    { value: "system", label: "System", icon: "monitor" }
+  ]
+%>
+
+<section data-test="settings-appearance-page" class="w-full">
+  <div data-test="settings-heading" class="relative mb-6 w-full">
+    <h1 class="text-2xl font-semibold text-zinc-900 dark:text-white">Settings</h1>
+    <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">Manage your profile and account settings</p>
+    <hr class="mt-6 border-zinc-200 dark:border-zinc-800">
+  </div>
+
+  <div class="flex items-start max-md:flex-col">
+    <div class="me-10 w-full pb-4 md:w-[220px]">
+      <nav data-test="settings-nav" aria-label="Settings" class="flex flex-col gap-1">
+        <% settings_nav_items.each do |item| %>
+          <% active = current_settings_path == item[:href] %>
+          <% link_classes = "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors " + (active ? "bg-zinc-200/70 text-zinc-900 dark:bg-zinc-800 dark:text-white" : "text-zinc-700 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-800/70") %>
+          <%= link_to item[:label], item[:href],
+                class: link_classes,
+                aria: { current: active ? "page" : nil },
+                data: { test: item[:data_test], active: active } %>
+        <% end %>
+      </nav>
+    </div>
+
+    <hr class="md:hidden border-zinc-200 dark:border-zinc-800">
+
+    <div class="flex-1 self-stretch max-md:pt-6">
+      <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Appearance</h2>
+      <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Update the appearance settings for your account</p>
+
+      <div class="mt-5 w-full max-w-lg">
+        <fieldset data-test="theme-switcher"
+                  data-controller="theme"
+                  class="inline-flex rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+          <legend class="sr-only">Theme</legend>
+          <% theme_options.each do |option| %>
+            <label class="cursor-pointer">
+              <input type="radio"
+                     name="theme"
+                     value="<%= option[:value] %>"
+                     data-test="theme-option-<%= option[:value] %>"
+                     data-theme-target="option"
+                     data-action="change->theme#select"
+                     class="peer sr-only">
+              <span class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 peer-checked:bg-white peer-checked:text-zinc-900 peer-checked:shadow-sm dark:text-zinc-400 dark:hover:text-white dark:peer-checked:bg-zinc-700 dark:peer-checked:text-white">
+                <%= icon option[:icon], class: "size-5" %>
+                <%= option[:label] %>
+              </span>
+            </label>
+          <% end %>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,159 @@
+<% content_for :title, "Profile settings" %>
+
+<% input_classes = "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-white dark:focus:ring-white" %>
+<% input_error_classes = "border-red-500 focus:border-red-500 focus:ring-red-500" %>
+
+<%
+  settings_nav_items = [
+    { label: "Profile",    href: settings_profile_path,    data_test: "settings-nav-profile" },
+    { label: "Appearance", href: settings_appearance_path, data_test: "settings-nav-appearance" }
+  ]
+  current_settings_path = request.path
+
+  user_name  = @user.respond_to?(:name)  ? @user.name  : (@user.user_metadata.is_a?(Hash) ? @user.user_metadata["name"] : nil)
+  user_email = @user.email
+  user_verified = @user.respond_to?(:verified?) ? @user.verified? : true
+%>
+
+<section data-test="settings-profile-page" class="w-full">
+  <div data-test="settings-heading" class="relative mb-6 w-full">
+    <h1 class="text-2xl font-semibold text-zinc-900 dark:text-white">Settings</h1>
+    <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">Manage your profile and account settings</p>
+    <hr class="mt-6 border-zinc-200 dark:border-zinc-800">
+  </div>
+
+  <div class="flex items-start max-md:flex-col">
+    <div class="me-10 w-full pb-4 md:w-[220px]">
+      <nav data-test="settings-nav" aria-label="Settings" class="flex flex-col gap-1">
+        <% settings_nav_items.each do |item| %>
+          <% active = current_settings_path == item[:href] %>
+          <% link_classes = "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors " + (active ? "bg-zinc-200/70 text-zinc-900 dark:bg-zinc-800 dark:text-white" : "text-zinc-700 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-800/70") %>
+          <%= link_to item[:label], item[:href],
+                class: link_classes,
+                aria: { current: active ? "page" : nil },
+                data: { test: item[:data_test], active: active } %>
+        <% end %>
+      </nav>
+    </div>
+
+    <hr class="md:hidden border-zinc-200 dark:border-zinc-800">
+
+    <div class="flex-1 self-stretch max-md:pt-6">
+      <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Profile</h2>
+      <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Update your name and email address</p>
+
+      <div class="mt-5 w-full max-w-lg">
+        <%= render AuthSessionStatusComponent.new(status: notice) %>
+
+        <%= form_with(url: settings_profile_path, method: :patch, html: { class: "my-6 flex flex-col gap-6", "data-test": "profile-form" }) do |form| %>
+          <div class="flex flex-col gap-2">
+            <%= form.label :name, "Name", class: "text-sm font-medium text-zinc-900 dark:text-white" %>
+            <%= form.text_field :name,
+              value: user_name,
+              required: true,
+              autofocus: true,
+              autocomplete: "name",
+              placeholder: "Full name",
+              class: input_classes,
+              "data-test": "profile-name-input" %>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <%= form.label :email, "Email", class: "text-sm font-medium text-zinc-900 dark:text-white" %>
+            <%= form.email_field :email,
+              value: user_email,
+              required: true,
+              autocomplete: "email",
+              placeholder: "email@example.com",
+              class: "#{input_classes}#{' ' + input_error_classes if @update_error.present?}",
+              "data-test": "profile-email-input",
+              aria: { invalid: @update_error.present?, describedby: @update_error.present? ? "profile-update-error" : nil } %>
+            <% if @update_error.present? %>
+              <p id="profile-update-error" class="text-sm text-red-600 dark:text-red-400" data-test="profile-update-error"><%= @update_error %></p>
+            <% end %>
+
+            <% unless user_verified %>
+              <div data-test="profile-email-unverified" class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                Your email address is unverified.
+              </div>
+            <% end %>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <%= form.submit "Save",
+              class: "inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 dark:focus:ring-white",
+              data: { test: "update-profile-button" } %>
+          </div>
+        <% end %>
+
+        <section data-test="delete-user-section" class="mt-10 space-y-6"
+                 data-controller="confirmation-modal"
+                 data-confirmation-modal-open-on-connect-value="<%= @delete_account_error.present? %>">
+          <div class="relative mb-5">
+            <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Delete account</h2>
+            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Delete your account and all of its resources</p>
+          </div>
+
+          <button type="button"
+                  data-test="delete-user-button"
+                  data-action="confirmation-modal#open"
+                  class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+            Delete account
+          </button>
+
+          <div data-test="delete-user-backdrop"
+               data-confirmation-modal-target="backdrop"
+               data-action="click->confirmation-modal#close"
+               class="<%= "hidden" unless @delete_account_error.present? %> fixed inset-0 z-40 bg-black/50"></div>
+
+          <div data-test="delete-user-modal"
+               data-confirmation-modal-target="panel"
+               role="dialog"
+               aria-modal="true"
+               aria-labelledby="delete-account-modal-heading"
+               class="<%= "hidden" unless @delete_account_error.present? %> fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-zinc-900">
+              <%= form_with(url: settings_profile_path, method: :delete, html: { class: "space-y-6", "data-test": "delete-user-form" }) do |form| %>
+                <div>
+                  <h3 id="delete-account-modal-heading" class="text-lg font-semibold text-zinc-900 dark:text-white">
+                    Are you sure you want to delete your account?
+                  </h3>
+                  <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.
+                  </p>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <%= form.label :password, "Password", class: "text-sm font-medium text-zinc-900 dark:text-white" %>
+                  <%= form.password_field :password,
+                    required: true,
+                    autocomplete: "current-password",
+                    placeholder: "Password",
+                    class: "#{input_classes}#{' ' + input_error_classes if @delete_account_error.present?}",
+                    "data-test": "delete-account-password-input",
+                    "data-confirmation-modal-target": "passwordInput",
+                    aria: { invalid: @delete_account_error.present?, describedby: @delete_account_error.present? ? "delete-account-error" : nil } %>
+                  <% if @delete_account_error.present? %>
+                    <p id="delete-account-error" class="text-sm text-red-600 dark:text-red-400" data-test="delete-account-error"><%= @delete_account_error %></p>
+                  <% end %>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                  <button type="button"
+                          data-test="cancel-delete-user-button"
+                          data-action="confirmation-modal#close"
+                          class="inline-flex items-center justify-center rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700">
+                    Cancel
+                  </button>
+                  <%= form.submit "Delete account",
+                    class: "inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2",
+                    data: { test: "confirm-delete-user-button" } %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
