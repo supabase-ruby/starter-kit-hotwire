@@ -1,15 +1,30 @@
 ENV["RAILS_ENV"] ||= "test"
+ENV["SUPABASE_URL"] ||= "https://test.supabase.invalid"
+ENV["SUPABASE_PUBLISHABLE_KEY"] ||= "sb_publishable_test"
+ENV["SUPABASE_SECRET_KEY"] ||= "sb_secret_test"
+
 require_relative "../config/environment"
 require "rails/test_help"
+require_relative "support/supabase_auth_stubs"
+
+ApplicationController.prepend(SupabaseAuthStubs)
 
 module ActiveSupport
   class TestCase
-    # Run tests in parallel with specified workers
-    parallelize(workers: :number_of_processors)
+    parallelize(workers: 1)
 
-    # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    setup do
+      SupabaseAuthStubs.reset!
+      ::Current.user = nil
+      ::Current.session = nil
+    end
+
+    teardown do
+      SupabaseAuthStubs.reset!
+      ::Current.user = nil
+      ::Current.session = nil
+    end
   end
 end
