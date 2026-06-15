@@ -34,7 +34,7 @@
         <span>Settings</span>
       <% end %>
 
-      <%= button_to sign_in_path,
+      <%= button_to session_path,
                     method: :delete,
                     form: { role: "menuitem", class: "block w-full" },
                     data: { test: "logout-button" },
