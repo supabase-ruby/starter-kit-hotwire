@@ -1,0 +1,17 @@
+<% content_for :title, "Notes" %>
+
+<div data-test="notes-page" class="flex h-full w-full flex-1 flex-col gap-4">
+  <h1 class="text-2xl font-semibold">Notes</h1>
+
+  <% if @notes.any? %>
+    <ul data-test="notes-list" class="flex flex-col gap-2">
+      <% @notes.each do |note| %>
+        <li data-test="note-item" class="rounded-md border border-zinc-200 p-3 dark:border-zinc-700">
+          <%= note["content"] %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p data-test="notes-empty" class="text-sm text-zinc-500">No notes yet.</p>
+  <% end %>
+</div>

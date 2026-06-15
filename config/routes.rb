@@ -7,6 +7,8 @@ Rails.application.routes.draw do
   get "welcome",   to: "pages#welcome", as: :welcome
   get "dashboard", to: "home#index",    as: :dashboard
 
+  resources :notes, only: %i[index]
+
   namespace :settings do
     resource :profile,    only: %i[show update destroy], controller: "profiles"
     resource :appearance, only: %i[show],                controller: "appearances"
