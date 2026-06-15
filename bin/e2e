@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require "open3"
+
+APP_ROOT = File.expand_path("..", __dir__)
+TIMEOUT_SECONDS = Integer(ENV.fetch("E2E_SUPABASE_TIMEOUT", "120"))
+
+def abort_with(message, next_step: nil)
+  warn "✗ #{message}"
+  warn "  → #{next_step}" if next_step
+  exit 1
+end
+
+def info(message)
+  puts "› #{message}"
+end
+
+# 1. Require the Supabase CLI on PATH.
+unless system("command -v supabase >/dev/null 2>&1")
+  abort_with(
+    "Supabase CLI not found on PATH.",
+    next_step: "Install it: https://supabase.com/docs/guides/local-development/cli/getting-started"
+  )
+end
+
+# 2. Require a reachable Docker daemon (used by `supabase start`).
+unless system("docker info >/dev/null 2>&1")
+  abort_with(
+    "Docker is not running or not installed.",
+    next_step: "Install Docker Desktop (https://docs.docker.com/get-docker/) and start it, then re-run bin/e2e."
+  )
+end
+
+FileUtils.chdir(APP_ROOT) do
+  # 3. Start the stack if it isn't already up. `supabase status` exits non-zero
+  #    when the local stack isn't running.
+  _out, _err, status = Open3.capture3("supabase", "status")
+
+  if status.success?
+    info "Supabase stack already running — reusing."
+  else
+    info "Starting Supabase stack (timeout: #{TIMEOUT_SECONDS}s)…"
+    pid = Process.spawn("supabase", "start", out: $stdout, err: $stderr)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + TIMEOUT_SECONDS
+
+    loop do
+      finished_pid, finished_status = Process.waitpid2(pid, Process::WNOHANG)
+      if finished_pid
+        unless finished_status.success?
+          abort_with(
+            "`supabase start` exited with status #{finished_status.exitstatus}.",
+            next_step: "Check the output above. Common causes: port conflicts (54321/54322), stale containers (`supabase stop`), or a missing supabase/config.toml (`supabase init`)."
+          )
+        end
+        break
+      end
+
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+        Process.kill("TERM", pid)
+        Process.waitpid(pid)
+        abort_with(
+          "Supabase stack did not become ready within #{TIMEOUT_SECONDS}s.",
+          next_step: "Bump the budget with E2E_SUPABASE_TIMEOUT=240 bin/e2e, or check Docker resource limits."
+        )
+      end
+
+      sleep 2
+    end
+  end
+
+  # 4. Read URLs and keys from the running stack and export them so the Rails
+  #    test process can pick them up.
+  env_out, env_err, env_status = Open3.capture3("supabase", "status", "--output", "env")
+  unless env_status.success?
+    abort_with(
+      "`supabase status --output env` failed: #{env_err.strip}",
+      next_step: "Run `supabase status` manually to debug, then re-run bin/e2e."
+    )
+  end
+
+  parsed = env_out.each_line.with_object({}) do |line, acc|
+    stripped = line.strip
+    next if stripped.empty? || stripped.start_with?("#")
+
+    key, _, value = stripped.partition("=")
+    acc[key] = value.gsub(/\A"|"\z/, "")
+  end
+
+  required = { "API_URL" => "SUPABASE_URL", "ANON_KEY" => "SUPABASE_ANON_KEY", "SERVICE_ROLE_KEY" => "SUPABASE_SERVICE_ROLE_KEY" }
+  missing = required.keys - parsed.keys
+  unless missing.empty?
+    abort_with(
+      "`supabase status --output env` is missing: #{missing.join(', ')}.",
+      next_step: "Upgrade the Supabase CLI (`brew upgrade supabase/tap/supabase`) and re-run."
+    )
+  end
+
+  required.each { |from, to| ENV[to] = parsed.fetch(from) }
+
+  info "Supabase ready at #{ENV.fetch('SUPABASE_URL')}"
+  info "Exported SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY."
+
+  # 5. Hand off to the test runner if one was passed; otherwise leave the stack
+  #    running. Subsequent stories (US-002+) wire `bin/rails test:e2e` here.
+  if ARGV.empty?
+    info "Bootstrap complete. Re-run with a command (e.g. `bin/e2e bin/rails test`) to execute it against this stack."
+  else
+    exec(*ARGV)
+  end
+end

@@ -151,6 +151,47 @@ bin/ci                  # runs the full lint + security + test suite
 Any step that fails aborts the run with a non-zero exit code. To run a step
 in isolation, just invoke the underlying command directly.
 
+## End-to-end tests
+
+`bin/e2e` boots a local Supabase stack via the Supabase CLI (`supabase start`,
+which uses Docker under the hood) and exports its URL and keys into the
+environment so the Rails test process can talk to a real backend instead of
+mocks.
+
+### Prerequisites
+
+- **Docker** running locally — install [Docker Desktop](https://docs.docker.com/get-docker/).
+- **Supabase CLI** on PATH — install via `brew install supabase/tap/supabase`
+  or follow the [official docs](https://supabase.com/docs/guides/local-development/cli/getting-started).
+
+### Running
+
+```bash
+bin/e2e                       # boot/reuse the stack, then exit (bootstrap only)
+bin/e2e bin/rails test        # boot/reuse, then run the given command against it
+```
+
+The script is idempotent — if the stack is already running it reuses it
+instead of restarting. First boot pulls Docker images and can take a few
+minutes; subsequent runs are fast.
+
+On success it exports:
+
+- `SUPABASE_URL` — local API URL (e.g. `http://127.0.0.1:54321`)
+- `SUPABASE_ANON_KEY` — local anon key
+- `SUPABASE_SERVICE_ROLE_KEY` — local service-role key
+
+Override the boot budget (default 120s) with `E2E_SUPABASE_TIMEOUT=240 bin/e2e`.
+
+### Troubleshooting
+
+- **"Supabase CLI not found"** — install via the link above and re-open your shell.
+- **"Docker is not running"** — start Docker Desktop and wait for the whale icon to stop animating.
+- **Port conflicts on 54321/54322** — another Supabase stack is already up; run
+  `supabase stop` first or point your other project elsewhere.
+- **Stack didn't come up in time** — bump `E2E_SUPABASE_TIMEOUT`, or check
+  Docker's CPU/memory allocation in Docker Desktop → Settings → Resources.
+
 ## Icons
 
 Icons are rendered via the [lucide-rails](https://github.com/Rails-Designer/lucide-rails)
