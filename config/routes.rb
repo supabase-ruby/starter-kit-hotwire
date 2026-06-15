@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   get "welcome",   to: "pages#welcome", as: :welcome
   get "dashboard", to: "home#index",    as: :dashboard
 
-  resources :notes, only: %i[index]
+  resources :notes, only: %i[index update destroy]
 
   namespace :settings do
     resource :profile,    only: %i[show update destroy], controller: "profiles"

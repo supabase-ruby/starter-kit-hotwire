@@ -3,6 +3,14 @@
 <div data-test="notes-page" class="flex h-full w-full flex-1 flex-col gap-4">
   <h1 class="text-2xl font-semibold">Notes</h1>
 
+  <% if flash[:alert].present? %>
+    <p data-test="notes-flash-alert" class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-950 dark:text-red-300"><%= flash[:alert] %></p>
+  <% end %>
+
+  <% if flash[:notice].present? %>
+    <p data-test="notes-flash-notice" class="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"><%= flash[:notice] %></p>
+  <% end %>
+
   <% if @notes.any? %>
     <ul data-test="notes-list" class="flex flex-col gap-2">
       <% @notes.each do |note| %>
