@@ -156,7 +156,24 @@ in isolation, just invoke the underlying command directly.
 `bin/e2e` boots a local Supabase stack via the Supabase CLI (`supabase start`,
 which uses Docker under the hood) and exports its URL and keys into the
 environment so the Rails test process can talk to a real backend instead of
-mocks.
+mocks. The suite lives in `test/e2e/`.
+
+### What the suite covers
+
+The tests under `test/e2e/` exercise the full authenticated surface against a
+live Supabase Auth + Postgres instance:
+
+- **Sign-up / sign-in / sign-out** — happy paths plus negative cases (invalid
+  email, weak password, wrong password, unknown email).
+- **Session lifecycle** — persistence across requests and reloads, expiry
+  handling, and JWT-claim verification against the encrypted `sb-session`
+  cookie.
+- **RLS** — read and write policies on a sample `notes` table, verifying that
+  one user cannot read or mutate another user's rows (asserted both via the
+  Rails UI and via direct PostgREST calls).
+
+See [`test/e2e/README.md`](test/e2e/README.md) for the author's guide on the
+base class, helpers, and how to add a new test.
 
 ### Prerequisites
 
@@ -167,9 +184,13 @@ mocks.
 ### Running
 
 ```bash
-bin/e2e                       # boot/reuse the stack, then exit (bootstrap only)
-bin/e2e bin/rails test        # boot/reuse, then run the given command against it
+bin/e2e                                          # boot/reuse the stack, then run test/e2e/
+bin/e2e bin/rails test test/e2e/smoke_test.rb    # run one file
+bin/e2e bin/rails console                        # open a console against the live stack
 ```
+
+With no extra arguments, `bin/e2e` runs the full E2E suite. Any passed command
+overrides the default — useful for one-off debugging.
 
 The script is idempotent — if the stack is already running it reuses it
 instead of restarting. First boot pulls Docker images and can take a few
@@ -183,14 +204,50 @@ On success it exports:
 
 Override the boot budget (default 120s) with `E2E_SUPABASE_TIMEOUT=240 bin/e2e`.
 
+### Skipping E2E
+
+`bin/ci` automatically skips the E2E step in two cases:
+
+- **Docker is not running** — a gray "Tests: E2E (skipped)" notice is printed
+  and the run continues. Useful on CI hosts without a Docker daemon.
+- **`SKIP_E2E=1` is set** — explicit opt-out. Use this to short-circuit the
+  step locally without stopping Docker:
+
+  ```bash
+  SKIP_E2E=1 bin/ci
+  ```
+
+Neither case fails the CI run. Re-enable by unsetting the variable and
+starting Docker.
+
 ### Troubleshooting
 
-- **"Supabase CLI not found"** — install via the link above and re-open your shell.
-- **"Docker is not running"** — start Docker Desktop and wait for the whale icon to stop animating.
-- **Port conflicts on 54321/54322** — another Supabase stack is already up; run
-  `supabase stop` first or point your other project elsewhere.
+- **"Supabase CLI not found"** — install via the link above and re-open your
+  shell so the new PATH entry is picked up.
+- **"Docker is not running"** — start Docker Desktop and wait for the whale
+  icon to stop animating. Re-run `bin/e2e`. `bin/ci` will silently skip the
+  E2E step when Docker is unreachable.
+- **Port conflicts on 54321/54322/54323** — another Supabase stack is already
+  bound to the local ports. Run `supabase stop` in the other project first,
+  or change this project's ports in `supabase/config.toml`.
+- **Stale Supabase state** — symptoms include leftover users from a previous
+  run, unexpected RLS rows, or `SupabaseReset.clean!` failing to drain. Fully
+  reset the stack:
+
+  ```bash
+  supabase stop --no-backup   # drops the local DB volume
+  bin/e2e                     # cold boot, fresh state
+  ```
+
+  `--no-backup` is the destructive variant — it deletes the local Postgres
+  volume, so any locally seeded data is gone. Use this when you suspect a
+  bad migration or a corrupted local DB.
 - **Stack didn't come up in time** — bump `E2E_SUPABASE_TIMEOUT`, or check
   Docker's CPU/memory allocation in Docker Desktop → Settings → Resources.
+- **Tests pass locally but a new contributor sees failures** — they don't
+  need to run `supabase init` (the `supabase/` directory is committed), but
+  they do need Docker running and the Supabase CLI on PATH. Migrations under
+  `supabase/migrations/` are applied automatically on `supabase start`.
 
 ## Icons
 
