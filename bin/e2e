@@ -107,6 +107,7 @@ FileUtils.chdir(APP_ROOT) do
   if ARGV.empty?
     info "Bootstrap complete. Re-run with a command (e.g. `bin/e2e bin/rails test`) to execute it against this stack."
   else
+    ENV["RAILS_ENV"] = "e2e"
     exec(*ARGV)
   end
 end

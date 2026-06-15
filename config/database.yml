@@ -20,6 +20,13 @@ test:
   <<: *default
   database: storage/test.sqlite3
 
+# End-to-end environment, used by `bin/e2e` to drive the test suite against a
+# real local Supabase stack. Mirrors `test` so fixtures/migrations behave the
+# same — Supabase URLs and keys are read from env vars, not from this file.
+e2e:
+  <<: *default
+  database: storage/e2e.sqlite3
+
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.
 production:
