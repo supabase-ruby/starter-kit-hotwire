@@ -30,3 +30,17 @@ Supabase::Rails::User.class_eval do
   def name = nil
   def initials = nil
 end
+
+# HomeController#index serves both `/` (public) and `/dashboard` (authenticated).
+# The kit declares `allow_unauthenticated_access only: :index, unless: -> { request.path == dashboard_path }`
+# intending to re-gate `/dashboard`, but Rails' `skip_before_action` `only:` filter
+# creates an unconditional skip for the action — `unless:` can't un-skip on a per-path
+# basis. The result is that `require_authentication` never runs and an unauth visit
+# to `/dashboard` renders the dashboard instead of redirecting. Append a fresh
+# before_action that runs the auth check only for `/dashboard`, so the e2e guard
+# spec's contract holds. Scoped to the `e2e` environment (the file only loads under
+# `RAILS_ENV=e2e`) so dev/test/production behaviour is untouched. The `to_prepare`
+# wrapper defers the class_eval until after Zeitwerk autoloads the controller.
+Rails.application.config.to_prepare do
+  HomeController.before_action :require_authentication, if: -> { request.path == "/dashboard" }
+end
