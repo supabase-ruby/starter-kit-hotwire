@@ -5,7 +5,7 @@
 <%= render AuthSessionStatusComponent.new(status: flash[:notice], class_name: "text-center") %>
 
 <% if flash[:alert].present? %>
-  <p class="font-medium text-sm text-red-600 text-center" data-test="login-error"><%= flash[:alert] %></p>
+  <p class="font-medium text-sm text-red-600 text-center" data-test="login-error" data-testid="login-error"><%= flash[:alert] %></p>
 <% end %>
 
 <%= form_with(url: session_path, html: { class: "flex flex-col gap-6", "data-test": "login-form" }) do |form| %>
@@ -18,7 +18,8 @@
       autocomplete: "email",
       placeholder: "email@example.com",
       class: "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-white dark:focus:ring-white",
-      "data-test": "login-email-input" %>
+      "data-test": "login-email-input",
+      "data-testid": "login-email-input" %>
   </div>
 
   <div class="flex flex-col gap-2">
@@ -34,10 +35,11 @@
       placeholder: "Password",
       maxlength: 72,
       class: "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-white dark:focus:ring-white",
-      "data-test": "login-password-input" %>
+      "data-test": "login-password-input",
+      "data-testid": "login-password-input" %>
   </div>
 
-  <%= render ButtonComponent.new(label: "Log in", type: :submit) %>
+  <%= render ButtonComponent.new(label: "Log in", type: :submit, test_id: "login-submit") %>
 <% end %>
 
 <div class="text-center text-sm text-zinc-600 dark:text-zinc-400">

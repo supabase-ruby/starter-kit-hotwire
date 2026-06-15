@@ -18,10 +18,11 @@
       autocomplete: "email",
       placeholder: "email@example.com",
       class: "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-white dark:focus:ring-white",
-      "data-test": "password-reset-email-input" %>
+      "data-test": "password-reset-email-input",
+      "data-testid": "password-reset-email-input" %>
   </div>
 
-  <%= render ButtonComponent.new(label: "Email reset instructions", type: :submit) %>
+  <%= render ButtonComponent.new(label: "Email reset instructions", type: :submit, test_id: "password-reset-submit") %>
 <% end %>
 
 <div class="flex items-center gap-3">
