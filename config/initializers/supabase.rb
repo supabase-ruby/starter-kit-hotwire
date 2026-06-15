@@ -39,6 +39,19 @@ if Rails.env.e2e?
       # missing-config error fires with its actionable message.
     end
   end
+
+  # Bridge the Supabase CLI's naming (SUPABASE_ANON_KEY /
+  # SUPABASE_SERVICE_ROLE_KEY, also used in `.env.example` and `bin/e2e`)
+  # onto what the `supabase-rails` gem reads (SUPABASE_PUBLISHABLE_KEY /
+  # SUPABASE_SECRET_KEY). Force-overwrites because `test/test_helper.rb`
+  # presets the gem-side names to test fakes, which the gem would
+  # otherwise use against the real local stack.
+  if (anon = ENV["SUPABASE_ANON_KEY"]) && !anon.empty?
+    ENV["SUPABASE_PUBLISHABLE_KEY"] = anon
+  end
+  if (svc = ENV["SUPABASE_SERVICE_ROLE_KEY"]) && !svc.empty?
+    ENV["SUPABASE_SECRET_KEY"] = svc
+  end
 end
 
 # Origins the OAuth + password-reset helpers will accept as redirect targets.

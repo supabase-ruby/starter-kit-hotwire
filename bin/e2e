@@ -102,12 +102,11 @@ FileUtils.chdir(APP_ROOT) do
   info "Supabase ready at #{ENV.fetch('SUPABASE_URL')}"
   info "Exported SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY."
 
-  # 5. Hand off to the test runner if one was passed; otherwise leave the stack
-  #    running. Subsequent stories (US-002+) wire `bin/rails test:e2e` here.
-  if ARGV.empty?
-    info "Bootstrap complete. Re-run with a command (e.g. `bin/e2e bin/rails test`) to execute it against this stack."
-  else
-    ENV["RAILS_ENV"] = "e2e"
-    exec(*ARGV)
-  end
+  # 5. Hand off to the test runner. With no extra args we run the full E2E
+  #    suite (`test/e2e/`); a custom command overrides this for one-off
+  #    debugging (e.g. `bin/e2e bin/rails console`).
+  ENV["RAILS_ENV"] = "e2e"
+  command = ARGV.empty? ? %w[bin/rails test test/e2e] : ARGV
+  info "→ #{command.join(' ')}"
+  exec(*command)
 end
