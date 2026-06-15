@@ -18,3 +18,15 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
 end
+
+# UserMenuComponent reads `@user.name` and `@user.initials` to render the
+# sidebar avatar. Those methods only exist on a shadow ApplicationRecord
+# `User` (FR-W14); the default `Supabase::Rails::User` value object has no
+# such accessors, so any authenticated page 500s under a real Supabase
+# session. Returning `nil` here triggers the component's existing fallbacks
+# (`display_name` → email, `initials` → derived-from-email). Scoped to the
+# `e2e` environment so production behaviour is unchanged.
+Supabase::Rails::User.class_eval do
+  def name = nil
+  def initials = nil
+end
