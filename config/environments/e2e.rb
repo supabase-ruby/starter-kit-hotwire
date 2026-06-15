@@ -5,6 +5,14 @@
 # is outbound mail, which is relayed over SMTP to Mailpit on localhost:1025 so
 # every confirmation / reset message lands in the same inbox the e2e suite polls.
 
+# Production-safety guard (US-017): the e2e environment must never be selected
+# anywhere except via the local boot script (`e2e/scripts/e2e.sh`), which is the
+# only code path permitted to set `E2E_LOCAL_ONLY=1`. Deploy pipelines, Docker
+# base images, and CI workflows must not be able to accidentally boot this env.
+unless ENV["E2E_LOCAL_ONLY"] == "1"
+  raise "RAILS_ENV=e2e requires E2E_LOCAL_ONLY=1; refusing to boot"
+end
+
 require_relative "development"
 
 Rails.application.configure do
