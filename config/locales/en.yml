@@ -29,3 +29,10 @@
 
 en:
   hello: "Hello world"
+  supabase:
+    rails:
+      sessions:
+        # Override the gem's "Try another email address or password." copy so
+        # successful and failed sign-ins surface the same generic error string
+        # the product spec requires (no user enumeration).
+        invalid: "Invalid email or password"
